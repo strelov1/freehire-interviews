@@ -1,0 +1,37 @@
+{
+  "name": "freehire-interviews",
+  "productName": "Freehire Interviews",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local interview recording and private Freehire tracker integration",
+  "author": "Freehire",
+  "license": "MIT",
+  "main": "main.js",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "build:native": "node scripts/build-native.js",
+    "build:renderer": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "node --test",
+    "prestart": "npm run build:native && npm run build:renderer",
+    "start": "electron .",
+    "pack:mac": "npm run build:native && npm run build:renderer && electron-builder --mac --dir"
+  },
+  "dependencies": {
+    "ffmpeg-static": "^5.2.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^6.0.1",
+    "electron": "^43.8.3",
+    "electron-builder": "^26.14.0",
+    "lucide-react": "^1.8.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "typescript": "^5.9.3",
+    "vite": "^8.1.6"
+  }
+}

@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'none'; style-src 'unsafe-inline'"
+    />
+    <title>Record Interview</title>
+    <style>
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        padding: 5px;
+        font:
+          13px/1.4 -apple-system,
+          BlinkMacSystemFont,
+          system-ui,
+          sans-serif;
+      }
+      main {
+        --fill: #fff;
+        --text: #202124;
+        --muted: #595b64;
+        --line: #dedee4;
+        --accent: #5b6f00;
+        --on-accent: #f3f6e2;
+        background: var(--fill);
+        color: var(--text);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        box-shadow: 0 2px 5px #0002;
+        padding: 12px 14px;
+      }
+      @media (prefers-color-scheme: dark) {
+        main {
+          --fill: #242429;
+          --text: #f4f4f6;
+          --muted: #b8b9c1;
+          --line: #414148;
+          --accent: oklch(0.72 0.095 121);
+          --on-accent: oklch(0.18 0.02 120);
+          color-scheme: dark;
+        }
+      }
+      h1 {
+        margin: 0;
+        font-size: 15px;
+      }
+      p {
+        margin: 4px 0 10px;
+        color: var(--muted);
+      }
+      #source {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      footer {
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      button {
+        padding: 5px 10px;
+        min-height: 30px;
+        border: 1px solid var(--line);
+        border-radius: 7px;
+        font: inherit;
+        font-weight: 600;
+        color: var(--text);
+        background: var(--fill);
+        cursor: pointer;
+      }
+      button:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+      }
+      #accept {
+        border-color: transparent;
+        background: var(--accent);
+        color: var(--on-accent);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Call detected</h1>
+      <p id="source">Your microphone is in use.</p>
+      <footer>
+        <button type="button" id="dismiss">Not now</button>
+        <button type="button" id="accept">Record Interview</button>
+      </footer>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,26 @@
+{
+  "appId": "me.freehire.interviews",
+  "productName": "Freehire Interviews",
+  "directories": { "output": "dist" },
+  "files": [
+    "main.js",
+    "preload.js",
+    "src/dist/**/*",
+    "src/helpers/**/*",
+    "src/assets/freehire-dock.png",
+    "src/assets/freehireTemplate@3x.png",
+    "LICENSE"
+  ],
+  "asarUnpack": ["node_modules/ffmpeg-static/**/*"],
+  "extraResources": [{ "from": "resources/bin", "to": "bin" }],
+  "mac": {
+    "target": "dmg",
+    "minimumSystemVersion": "14.2",
+    "category": "public.app-category.productivity",
+    "icon": "src/assets/freehire-dock.icns",
+    "extendInfo": {
+      "NSMicrophoneUsageDescription": "Freehire Interviews uses the microphone when you choose to record an interview.",
+      "NSAudioCaptureUsageDescription": "Freehire Interviews records the sound from your call when you choose to record an interview."
+    }
+  }
+}
