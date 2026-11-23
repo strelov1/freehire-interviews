@@ -34,7 +34,7 @@ for (const [name, minimumOS, frameworks] of [
   const previous = fs.statSync(binary, { throwIfNoEntry: false });
   const updatedAt = Math.max(fs.statSync(source).mtimeMs, fs.statSync(__filename).mtimeMs);
   if (previous?.mtimeMs >= updatedAt && !process.env.SDKROOT &&
-      spawnSync("xcrun", ["lipo", "-verify_arch", tripleArch, binary]).status === 0) {
+      spawnSync("xcrun", ["lipo", binary, "-verify_arch", tripleArch]).status === 0) {
     continue;
   }
   const scratch = `${binary}.${process.pid}.tmp`;

@@ -62,7 +62,7 @@ jobs:
           architecture="$TARGET_ARCH"
           if [[ "$architecture" == x64 ]]; then architecture=x86_64; fi
           for helper in macos-audio-tap macos-mic-listener; do
-            xcrun lipo -verify_arch "$architecture" "$app_path/Contents/Resources/bin/$helper"
+            xcrun lipo "$app_path/Contents/Resources/bin/$helper" -verify_arch "$architecture"
           done
           hdiutil verify dist/*.dmg
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
