@@ -100,3 +100,25 @@ test("skips a malformed manifest when listing completed recordings", (t) => {
   const saved = working.finish();
   assert.deepEqual(listRecordings(root), [saved]);
 });
+
+test("builds playable 24 kHz WAV from two local tracks of unequal length", async (t) => {
+  const root = fs.mkdtempSync(
+    path.join(os.tmpdir(), "freehire-playback-wave-"),
+  );
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const {
+    createPlaybackWave,
+  } = require("../../src/helpers/freehireInterviewRecording");
+  const mic = Buffer.from([0xe8, 0x03, 0x30, 0xf8]);
+  const system = Buffer.from([0xb8, 0x0b]);
+  fs.writeFileSync(path.join(root, "mic.pcm"), mic);
+  fs.writeFileSync(path.join(root, "system.pcm"), system);
+  const output = path.join(root, "playback.wav");
+  await createPlaybackWave(root, output);
+  const wave = fs.readFileSync(output);
+  assert.equal(wave.toString("ascii", 0, 4), "RIFF");
+  assert.equal(wave.readUInt32LE(24), 24000);
+  assert.equal(wave.readUInt32LE(40), 4);
+  assert.equal(wave.readInt16LE(44), 2000);
+  assert.equal(wave.readInt16LE(46), -2000);
+});

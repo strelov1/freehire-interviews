@@ -19,9 +19,6 @@
     "start": "electron .",
     "pack:mac": "npm run build:native && npm run build:renderer && electron-builder --mac --dir"
   },
-  "dependencies": {
-    "ffmpeg-static": "^5.2.0"
-  },
   "devDependencies": {
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",

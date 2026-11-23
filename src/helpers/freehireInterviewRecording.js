@@ -1,6 +1,8 @@
 const crypto = require("node:crypto");
 const fs = require("node:fs");
 const path = require("node:path");
+const { Readable } = require("node:stream");
+const { pipeline } = require("node:stream/promises");
 
 const INPUT_RATE = 24000;
 const OUTPUT_RATE = 16000;
@@ -144,21 +146,93 @@ function listRecordings(root) {
     .sort((a, b) => b.startedAt - a.startedAt);
 }
 
-function pcmWave(pcm) {
+function waveHeader(size, rate) {
   const header = Buffer.alloc(44);
   header.write("RIFF");
-  header.writeUInt32LE(pcm.length + 36, 4);
+  header.writeUInt32LE(size + 36, 4);
   header.write("WAVEfmt ", 8);
   header.writeUInt32LE(16, 16);
   header.writeUInt16LE(1, 20);
   header.writeUInt16LE(1, 22);
-  header.writeUInt32LE(OUTPUT_RATE, 24);
-  header.writeUInt32LE(OUTPUT_RATE * 2, 28);
+  header.writeUInt32LE(rate, 24);
+  header.writeUInt32LE(rate * 2, 28);
   header.writeUInt16LE(2, 32);
   header.writeUInt16LE(16, 34);
   header.write("data", 36);
-  header.writeUInt32LE(pcm.length, 40);
-  return Buffer.concat([header, pcm]);
+  header.writeUInt32LE(size, 40);
+  return header;
+}
+
+function pcmWave(pcm) {
+  return Buffer.concat([waveHeader(pcm.length, OUTPUT_RATE), pcm]);
+}
+
+async function createPlaybackWave(dir, output) {
+  const tracks = [];
+  const temp = output + ".tmp";
+  try {
+    for (const source of CHANNELS) {
+      const file = await fs.promises
+        .open(path.join(dir, source + ".pcm"), "r")
+        .catch((error) => {
+          if (error.code !== "ENOENT") throw error;
+          return null;
+        });
+      if (!file) continue;
+      const track = { file, size: 0 };
+      tracks.push(track);
+      track.size = Math.min(MAX_INPUT_BYTES, (await file.stat()).size) & ~1;
+    }
+    const bytes = Math.max(0, ...tracks.map((track) => track.size));
+    if (!bytes) throw new Error("This recording has no audio to play.");
+
+    async function* wave() {
+      yield waveHeader(bytes, INPUT_RATE);
+      for (let offset = 0; offset < bytes; offset += 65536) {
+        const size = Math.min(65536, bytes - offset);
+        const chunks = await Promise.all(
+          tracks.map(async ({ file, size: length }) => {
+            const data = Buffer.alloc(
+              Math.max(0, Math.min(size, length - offset)),
+            );
+            let read = 0;
+            while (read < data.length) {
+              const { bytesRead } = await file.read(
+                data,
+                read,
+                data.length - read,
+                offset + read,
+              );
+              if (!bytesRead) break;
+              read += bytesRead;
+            }
+            return data.subarray(0, read & ~1);
+          }),
+        );
+        const mixed = Buffer.alloc(size);
+        for (let i = 0; i < size; i += 2) {
+          let total = 0;
+          let count = 0;
+          for (const chunk of chunks) {
+            if (i >= chunk.length) continue;
+            total += chunk.readInt16LE(i);
+            count++;
+          }
+          if (count) mixed.writeInt16LE(Math.round(total / count), i);
+        }
+        yield mixed;
+      }
+    }
+
+    await pipeline(
+      Readable.from(wave()),
+      fs.createWriteStream(temp, { mode: 0o600 }),
+    );
+    await fs.promises.rename(temp, output);
+  } finally {
+    await Promise.allSettled(tracks.map(({ file }) => file.close()));
+    await fs.promises.rm(temp, { force: true });
+  }
 }
 
 function readChannel(dir, source, offset, size) {
@@ -200,6 +274,7 @@ function readInterviewSegment(dir, index, durationSeconds) {
 }
 
 module.exports = {
+  createPlaybackWave,
   createRecording,
   listRecordings,
   pcmWave,

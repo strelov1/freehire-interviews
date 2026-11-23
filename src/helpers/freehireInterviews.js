@@ -4,9 +4,8 @@ const { createPlayback } = require("./freehirePlayback");
 const { signIn } = require("./freehireOAuth");
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFile } = require("node:child_process");
-const { promisify } = require("node:util");
 const {
+  createPlaybackWave,
   listRecordings,
   readInterviewSegment,
   readRecording,
@@ -14,17 +13,6 @@ const {
   writeJSON,
   SEGMENT_SECONDS,
 } = require("./freehireInterviewRecording");
-
-const runFile = promisify(execFile);
-
-function getFFmpegPath() {
-  const executable = require("ffmpeg-static");
-  if (!executable) throw new Error("Playback is unavailable on this platform.");
-  return executable.replace(
-    path.sep + "app.asar" + path.sep,
-    path.sep + "app.asar.unpacked" + path.sep
-  );
-}
 
 function freehireOrigin(app) {
   const override = !app.isPackaged && process.env.FREEHIRE_INTERVIEW_API_ORIGIN;
@@ -237,30 +225,7 @@ function registerFreehireInterviews({
   handle("play", (id) =>
     withRecording(id, async (dir) => {
       const output = path.join(dir, "playback.wav");
-      if (!fs.existsSync(output)) {
-        const sources = ["mic", "system"]
-          .map((source) => path.join(dir, source + ".pcm"))
-          .filter((file) => fs.existsSync(file));
-        const args = sources.flatMap((file) => [
-          "-f",
-          "s16le",
-          "-ar",
-          "24000",
-          "-ac",
-          "1",
-          "-i",
-          file,
-        ]);
-        if (sources.length === 2) args.push("-filter_complex", "amix=inputs=2:duration=longest");
-        const temp = path.join(dir, "playback.tmp.wav");
-        try {
-          await runFile(getFFmpegPath(), ["-v", "error", "-y", ...args, temp], { timeout: 60_000 });
-          fs.chmodSync(temp, 0o600);
-          fs.renameSync(temp, output);
-        } finally {
-          fs.rmSync(temp, { force: true });
-        }
-      }
+      if (!fs.existsSync(output)) await createPlaybackWave(dir, output);
       return playback.select(id, output);
     })
   );

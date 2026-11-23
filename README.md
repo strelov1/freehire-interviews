@@ -27,3 +27,17 @@ npm run pack:mac
 ```
 
 The macOS capture helpers and parts of the desktop app are adapted from [OpenWhispr](https://github.com/OpenWhispr/openwhispr) under the included MIT license.
+
+## GitHub builds and releases
+
+[macOS build and release](https://github.com/strelov1/freehire-interviews/actions/workflows/macos.yml)
+runs tests and builds disk images for Apple Silicon and Intel on pull requests,
+pushes to `main`, and manual runs. Both disk images are available as workflow
+artifacts.
+
+To release, update the version in `package.json` and `package-lock.json`, merge the
+change, and push the matching `vX.Y.Z` tag from `main`. Once both disk images
+pass verification, GitHub Actions publishes them with SHA-256 checksums on the
+[Releases page](https://github.com/strelov1/freehire-interviews/releases).
+Disk images contain ad hoc signed apps. Developer ID signing and notarization
+are not configured.

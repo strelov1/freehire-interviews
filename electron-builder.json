@@ -11,11 +11,14 @@
     "src/assets/freehireTemplate@3x.png",
     "LICENSE"
   ],
-  "asarUnpack": ["node_modules/ffmpeg-static/**/*"],
+  "artifactName": "Freehire-Interviews-${version}-${arch}.${ext}",
   "extraResources": [{ "from": "resources/bin", "to": "bin" }],
   "mac": {
     "target": "dmg",
     "minimumSystemVersion": "14.2",
+    "identity": "-",
+    "hardenedRuntime": false,
+    "notarize": false,
     "category": "public.app-category.productivity",
     "icon": "src/assets/freehire-dock.icns",
     "extendInfo": {
